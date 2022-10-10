@@ -72,6 +72,7 @@ DictData.install()
  * please remove it before going online! ! !
  */
 
+console.log(Cookies.get('size'),'Cookies.get(\'size\')')
 Vue.use(Element, {
   size: Cookies.get('size') || 'medium' // set element-ui default size
 })
