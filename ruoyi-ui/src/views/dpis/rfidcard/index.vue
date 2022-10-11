@@ -92,6 +92,12 @@
       <el-table-column label="卡号" align="center" prop="code" />
       <el-table-column label="经度" align="center" prop="lng" />
       <el-table-column label="纬度" align="center" prop="lat" />
+      <el-table-column label="卡类型" align="center" prop="type" />
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -112,7 +118,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -181,6 +187,7 @@ export default {
         code: null,
         lng: null,
         lat: null,
+        type: null,
       },
       // 表单参数
       form: {},
@@ -215,6 +222,7 @@ export default {
         code: null,
         lng: null,
         lat: null,
+        type: null,
         createBy: null,
         createTime: null,
         updateBy: null,

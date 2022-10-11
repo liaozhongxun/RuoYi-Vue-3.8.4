@@ -9,6 +9,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="采集时间" prop="gatherTime">
+        <el-date-picker clearable
+          v-model="queryParams.gatherTime"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择采集时间">
+        </el-date-picker>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -65,6 +73,16 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="采集数据记录id" align="center" prop="dataId" />
       <el-table-column label="卡号" align="center" prop="code" />
+      <el-table-column label="采集时间" align="center" prop="gatherTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.gatherTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -84,7 +102,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -98,6 +116,14 @@
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="卡号" prop="code">
           <el-input v-model="form.code" placeholder="请输入卡号" />
+        </el-form-item>
+        <el-form-item label="采集时间" prop="gatherTime">
+          <el-date-picker clearable
+            v-model="form.gatherTime"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            placeholder="请选择采集时间">
+          </el-date-picker>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -138,6 +164,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         code: null,
+        gatherTime: null,
       },
       // 表单参数
       form: {},
@@ -169,6 +196,7 @@ export default {
       this.form = {
         dataId: null,
         code: null,
+        gatherTime: null,
         createTime: null
       };
       this.resetForm("form");
