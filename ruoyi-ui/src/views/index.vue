@@ -1,6 +1,8 @@
 <template>
   <div class="app-container home">
-      高速系统首页
+    <div class="content">
+      <img src="../assets/images/bg.jpg" />
+    </div>
   </div>
 </template>
 
@@ -8,9 +10,7 @@
 export default {
   name: "Index",
   data() {
-    return {
-
-    };
+    return {};
   },
   methods: {
     goTarget(href) {
@@ -21,6 +21,16 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+.app-container {
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  height:80vh;
+  .content{
+    width: 78vw;
+  }
+  img{
+    width: 78vw;
+  }
+}
 </style>
-
