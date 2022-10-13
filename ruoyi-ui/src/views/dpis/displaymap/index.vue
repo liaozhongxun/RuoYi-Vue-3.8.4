@@ -1,5 +1,12 @@
 <template>
   <div class="mapwarp">
+    <div class="layerbox">
+      <div class="layerbox_item">
+        <div class="item"><span class="iconfont el-icon-location"></span>已巡检 <span>{{countList.online}}</span></div>
+        <div class="item"><span class="iconfont el-icon-location-outline"></span>未巡检 <span>{{countList.offline}}</span></div>
+        <div class="item"><span class="iconfont el-icon-place"></span>总数 <span>{{countList.total}}</span></div>
+      </div>
+    </div>
     <div class="change_day">
       <el-date-picker clearable
         v-model="day"
@@ -17,7 +24,7 @@ import redIco from "../../../assets/images/MAP/red.png";
 import greenIco from "../../../assets/images/MAP/green.png";
 import blueIco from "../../../assets/images/MAP/blue.png";
 import blackIco from "../../../assets/images/MAP/black.png";
-import { listRfidcard,listData } from "@/api/dpis/displaymap";
+import { listRfidcard,listData,queryCount} from "@/api/dpis/displaymap";
 export default {
   data() {
     return {
@@ -29,18 +36,23 @@ export default {
       massMarks:null,
       InfoWindow: null,
       mapDatas:[],
-      deviceList: [
-
-      ],
+      deviceList: [],
+      countList:{
+        online:0,
+        offline:0,
+        total:0
+      }
     };
   },
   watch:{
     day(newV,oldV){
       console.log(newV,oldV);
       this.getList();
+      this.getMachineCount();
       if(new Date().toLocaleDateString().replace(/\//g,'-') == newV){
         this.updateTime = setInterval(()=>{
           this.getUpList();
+          this.getMachineCount();
         },7000)
       }else{
         clearInterval(this.updateTime)
@@ -76,6 +88,12 @@ export default {
         })
 
         this.showCard();
+      });
+    },
+    /** 采集统计 */
+    getMachineCount(){
+      queryCount({gatherTime: this.day}).then(response => {
+        this.countList = response;
       });
     },
     showCard(){
@@ -193,6 +211,7 @@ export default {
   },
   mounted() {
     this.getList();
+    this.getMachineCount();
     this.updateTime = setInterval(()=>{
       this.getUpList();
     },7000)
@@ -209,6 +228,55 @@ export default {
     right:10px;
     background: #fff;
     z-index: 999;
+  }
+  .layerbox {
+    position: absolute;
+    top:10px;
+    left:10px;
+    height: 45px;
+    background: #fff;
+    z-index: 999;
+    padding: 0 10px;
+
+    border-radius: 3px;
+    user-select: none;
+    box-shadow: 0 2px 2px rgba(0,0,0,.15);
+    .layerbox_item{
+      padding: 14px 0 13px;
+      background: #fff;
+      border-radius: 3px;
+      height: 18px;
+      .item{
+        float: left;
+        height: 18px;
+        padding: 0 12px;
+        font-size: 12px;
+        vertical-align: middle;
+        // cursor: pointer;
+        overflow: visible;
+        zoom: 1;
+        color: #5f6477;
+        line-height: 18px;
+        &:not(:first-child){
+          border-left: 1px #dbdee2 dashed;
+        }
+        &:hover{
+          color:rgb(176,179,192)
+        }
+        span{
+          font-weight: bold;
+        }
+        .iconfont{
+          font-size: 16px;
+          margin-right: 5px;
+          position: relative;
+          top:1px;
+          // &.el-icon-location{
+          //   color:#00ff00
+          // }
+        }
+      }
+    }
   }
 }
 #container {

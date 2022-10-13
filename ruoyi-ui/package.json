@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vue-cli-service serve",
     "build:prod": "vue-cli-service build",
-    "dev:stage": "vue-cli-service serve --mode stagingdev",
+    "dev:stage": "vue-cli-service serve --mode stagingdev --port 8888",
     "build:stage": "vue-cli-service build --mode staging",
     "preview": "node build/index.js --preview",
     "lint": "eslint --ext .js,.vue src"

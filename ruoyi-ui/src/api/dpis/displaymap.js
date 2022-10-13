@@ -17,3 +17,21 @@ export function listData(query) {
     params: query
   })
 }
+
+// 统计采集数据
+// export function queryCount(data) {
+//   return request({
+//     url: '/dpis/data/machine/queryCount',
+//     method: 'post',
+//     data: data
+//   })
+// }
+
+export function queryCount(query) {
+  return request({
+    url: '/dpis/rfidcard/counting',
+    method: 'get',
+    params: query
+  })
+}
+
