@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="卡号唯一ID" prop="code">
+      <el-form-item label="唯一卡号" prop="code">
         <el-input
           v-model="queryParams.code"
-          placeholder="请输入卡号唯一ID"
+          placeholder="请输入唯一卡号"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -82,8 +82,8 @@
 
     <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="采集数据记录id" align="center" prop="dataId" />
-      <el-table-column label="卡号唯一ID" align="center" prop="code" />
+      <el-table-column label="记录id" align="center" prop="dataId" />
+      <el-table-column label="唯一卡号" align="center" prop="code" />
       <el-table-column label="卡类型" align="center" prop="ctype" />
       <el-table-column label="用户数据" align="center" prop="cdata" />
       <el-table-column label="经度" align="center" prop="lng" />
@@ -129,8 +129,8 @@
     <!-- 添加或修改采集数据对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="卡号唯一ID" prop="code">
-          <el-input v-model="form.code" placeholder="请输入卡号唯一ID" />
+        <el-form-item label="唯一卡号" prop="code">
+          <el-input v-model="form.code" placeholder="请输入唯一卡号" />
         </el-form-item>
         <el-form-item label="用户数据" prop="cdata">
           <el-input v-model="form.cdata" placeholder="请输入用户数据" />
@@ -199,7 +199,7 @@ export default {
       // 表单校验
       rules: {
         code: [
-          { required: true, message: "卡号唯一ID不能为空", trigger: "blur" }
+          { required: true, message: "唯一卡号不能为空", trigger: "blur" }
         ],
         gatherTime: [
           { required: true, message: "采集时间不能为空", trigger: "blur" }

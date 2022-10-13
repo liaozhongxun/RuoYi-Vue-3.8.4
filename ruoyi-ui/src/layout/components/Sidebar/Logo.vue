@@ -35,7 +35,7 @@ export default {
   },
   data() {
     return {
-      title: '高速巡检系统',
+      title: '智慧巡查系统',
       logo: logoImg
     }
   }
