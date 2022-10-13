@@ -1,21 +1,32 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="卡号" prop="code">
+      <el-form-item label="卡号唯一ID" prop="code">
         <el-input
           v-model="queryParams.code"
-          placeholder="请输入卡号"
+          placeholder="请输入卡号唯一ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="采集时间" prop="gatherTime">
-        <el-date-picker clearable
-          v-model="queryParams.gatherTime"
-          type="date"
+      <el-form-item label="用户数据" prop="cdata">
+        <el-input
+          v-model="queryParams.cdata"
+          placeholder="请输入用户数据"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="采集时间">
+        <el-date-picker
+          v-model="daterangeGatherTime"
+          style="width: 240px"
           value-format="yyyy-MM-dd"
-          placeholder="请选择采集时间">
-        </el-date-picker>
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -72,15 +83,19 @@
     <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="采集数据记录id" align="center" prop="dataId" />
-      <el-table-column label="卡号" align="center" prop="code" />
+      <el-table-column label="卡号唯一ID" align="center" prop="code" />
+      <el-table-column label="卡类型" align="center" prop="ctype" />
+      <el-table-column label="用户数据" align="center" prop="cdata" />
+      <el-table-column label="经度" align="center" prop="lng" />
+      <el-table-column label="纬度" align="center" prop="lat" />
       <el-table-column label="采集时间" align="center" prop="gatherTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.gatherTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.gatherTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -114,8 +129,17 @@
     <!-- 添加或修改采集数据对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="卡号" prop="code">
-          <el-input v-model="form.code" placeholder="请输入卡号" />
+        <el-form-item label="卡号唯一ID" prop="code">
+          <el-input v-model="form.code" placeholder="请输入卡号唯一ID" />
+        </el-form-item>
+        <el-form-item label="用户数据" prop="cdata">
+          <el-input v-model="form.cdata" placeholder="请输入用户数据" />
+        </el-form-item>
+        <el-form-item label="经度" prop="lng">
+          <el-input v-model="form.lng" placeholder="请输入经度" />
+        </el-form-item>
+        <el-form-item label="纬度" prop="lat">
+          <el-input v-model="form.lat" placeholder="请输入纬度" />
         </el-form-item>
         <el-form-item label="采集时间" prop="gatherTime">
           <el-date-picker clearable
@@ -159,17 +183,27 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 采集时间时间范围
+      daterangeGatherTime: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         code: null,
+        ctype: null,
+        cdata: null,
         gatherTime: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        code: [
+          { required: true, message: "卡号唯一ID不能为空", trigger: "blur" }
+        ],
+        gatherTime: [
+          { required: true, message: "采集时间不能为空", trigger: "blur" }
+        ],
       }
     };
   },
@@ -180,6 +214,11 @@ export default {
     /** 查询采集数据列表 */
     getList() {
       this.loading = true;
+      this.queryParams.params = {};
+      if (null != this.daterangeGatherTime && '' != this.daterangeGatherTime) {
+        this.queryParams.params["beginGatherTime"] = this.daterangeGatherTime[0];
+        this.queryParams.params["endGatherTime"] = this.daterangeGatherTime[1];
+      }
       listData(this.queryParams).then(response => {
         this.dataList = response.rows;
         this.total = response.total;
@@ -196,6 +235,10 @@ export default {
       this.form = {
         dataId: null,
         code: null,
+        ctype: null,
+        cdata: null,
+        lng: null,
+        lat: null,
         gatherTime: null,
         createTime: null
       };
@@ -208,6 +251,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.daterangeGatherTime = [];
       this.resetForm("queryForm");
       this.handleQuery();
     },

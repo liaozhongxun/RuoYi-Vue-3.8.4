@@ -118,7 +118,7 @@ export default {
     init() {
       this.map = new AMap.Map("container", {
         // viewMode: "3D", //是否为3D地图模式
-        zoom: 9, //初始化地图级别
+        zoom: 10, //初始化地图级别
         // center: ["113.589274","34.736848"], //初始化地图中心点位置
         resizeEnable: true,
       });

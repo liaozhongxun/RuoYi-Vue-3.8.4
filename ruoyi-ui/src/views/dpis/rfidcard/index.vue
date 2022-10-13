@@ -33,6 +33,24 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="类型" prop="type">
+        <el-select v-model="queryParams.type" placeholder="请选择类型" clearable>
+          <el-option
+            v-for="dict in dict.type.rfidtype"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="排序" prop="seq">
+        <el-input
+          v-model="queryParams.seq"
+          placeholder="请输入排序"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -92,7 +110,12 @@
       <el-table-column label="卡号" align="center" prop="code" />
       <el-table-column label="经度" align="center" prop="lng" />
       <el-table-column label="纬度" align="center" prop="lat" />
-      <el-table-column label="卡类型" align="center" prop="type" />
+      <el-table-column label="类型" align="center" prop="type">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.rfidtype" :value="scope.row.type"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="排序" align="center" prop="seq" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
@@ -142,6 +165,18 @@
         <el-form-item label="纬度" prop="lat">
           <el-input v-model="form.lat" placeholder="请输入纬度" />
         </el-form-item>
+        <el-form-item label="类型">
+          <el-radio-group v-model="form.type">
+            <el-radio
+              v-for="dict in dict.type.rfidtype"
+              :key="dict.value"
+:label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="排序" prop="seq">
+          <el-input v-model="form.seq" placeholder="请输入排序" />
+        </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -159,6 +194,7 @@ import { listRfidcard, getRfidcard, delRfidcard, addRfidcard, updateRfidcard } f
 
 export default {
   name: "Rfidcard",
+  dicts: ['rfidtype'],
   data() {
     return {
       // 遮罩层
@@ -188,11 +224,21 @@ export default {
         lng: null,
         lat: null,
         type: null,
+        seq: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        name: [
+          { required: true, message: "名称不能为空", trigger: "blur" }
+        ],
+        code: [
+          { required: true, message: "卡号不能为空", trigger: "blur" }
+        ],
+        seq: [
+          { required: true, message: "排序不能为空", trigger: "blur" }
+        ],
       }
     };
   },
@@ -222,7 +268,8 @@ export default {
         code: null,
         lng: null,
         lat: null,
-        type: null,
+        type: "0",
+        seq: null,
         createBy: null,
         createTime: null,
         updateBy: null,
