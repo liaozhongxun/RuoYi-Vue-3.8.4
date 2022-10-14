@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta
+            name="viewport"
+            content="initial-scale=1.0, user-scalable=no, width=device-width"
+        />
+        <title>浏览器精确定位</title>
+        <meta
+            name="viewport"
+            content="width=device-width,initial-scale=1.0,initial-scale=1.0, user-scalable=no"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+        <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.1.2/axios.js"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            html,
+            body,
+            #app,
+            #container {
+                height: 100%;
+                position: relative;
+            }
+            .info {
+                position: absolute;
+                left: 2vw;
+                top: 2vw;
+                width: 96vw;
+                z-index: 999;
+                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15);
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            .info .status {
+                padding-bottom: 10px;
+                border-bottom: 1px dashed #e2e2e2;
+            }
+            .input {
+                width: 100%;
+                height: 35px;
+                font-size: 18px;
+                margin-top: 10px;
+                padding-left: 10px;
+                box-sizing: border-box;
+            }
+            .button {
+                width: 100%;
+                height: 35px;
+                font-size: 18px;
+                display: block;
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="app">
+            <div id="container"></div>
+            <div class="info">
+                <h4 class="status">{{poStatus}}</h4>
+                <div class="result" v-if="!errMessage">
+                    经纬度：
+                    <div>{{lngval}},{{latval}}</div>
+                </div>
+                <div class="result" v-else>{{errMessage}}</div>
+
+                <div class="submitinfo" v-if="!errMessage">
+                    <input
+                        class="input"
+                        type="text"
+                        placeholder="请输入卡号"
+                        v-model="code"
+                    />
+                    <input
+                        class="input"
+                        type="text"
+                        placeholder="请输入名称"
+                        v-model="name"
+                    />
+                    <button class="button" @click="submitCode">添 加</button>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script
+        type="text/javascript"
+        src="https://webapi.amap.com/maps?v=1.4.15&key=265d1f10919c205f3d5ad493dfc643a9"
+    ></script>
+    <script type="text/javascript">
+        var app = new Vue({
+            el: "#app",
+            data: {
+                message: "Hello Vue!",
+                poStatus: "定位中...",
+                errMessage: "经纬度获取中...",
+                lngval: "0.00000000",
+                latval: "0.00000000",
+                code: "",
+                name: "",
+                marker: null,
+                moveMarker:null,
+                map:null,
+            },
+            methods: {
+                submitCode() {
+                    let that = this;
+                    if (!this.code || !this.name) {
+                        alert("请输入卡信息");
+                        return;
+                    }
+                    let body = {
+                        code: this.code,
+                        lat: this.latval,
+                        lng: this.lngval,
+                        name: this.name,
+                        seq: 1,
+                    };
+                    var r = confirm("确认添加该卡吗？");
+                    if (r == true) {
+                        axios
+                            .post(
+                                "http://dpis.huiheiot.com/dpis-api/dpis/rfidcard/insertOrModify",
+                                body
+                            )
+                            .then(function (response) {
+                                alert(response.data.msg);
+                                if (response.data.code == 200) {
+                                    that.code = "";
+                                    that.name = "";
+                                }
+                            })
+                            .catch(function (error) {
+                                alert("请求失败");
+                                console.log(error);
+                            })
+                            .then(function () {
+                                // 总是会执行
+                            });
+                    } else {
+                    }
+                },
+                creatMoveMarker(lng,lat){
+                  let that = this;
+                  if (this.moveMarker) {
+                      this.moveMarker.remove();
+                  }
+
+                  //点标记
+                  this.moveMarker = new AMap.Marker({
+                      position: new AMap.LngLat(lng,lat),
+                      icon: "./image/move.png",
+                      offset: new AMap.Pixel(-31, -58),
+                      title: "移动杆",
+                  });
+
+                  // 将创建的点标记添加到已有的地图实例：
+                  that.map.add(this.moveMarker);
+                },
+                initmap() {
+                    let that = this;
+                    that.map = new AMap.Map("container", {
+                        resizeEnable: true,
+                    });
+                    AMap.plugin("AMap.Geolocation", function () {
+                        var geolocation = new AMap.Geolocation({
+                            enableHighAccuracy: true, //是否使用高精度定位，默认:true
+                            timeout: 10000, //超过10秒后停止定位，默认：5s
+                            buttonPosition: "RB", //定位按钮的停靠位置
+                            buttonOffset: new AMap.Pixel(10, 20), //定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+                            zoomToAccuracy: false, //定位成功后是否自动调整地图视野到定位点
+                            convert: false,
+                            showMarker: false,
+                            showCircle: false,
+                        });
+                        that.map.addControl(geolocation);
+                        // geolocation.getCurrentPosition(function(status,result){
+                        //     console.log(status,111)
+                        //     alert(status)
+                        //     if(status=='complete'){
+                        //         onComplete(result)
+                        //     }else{
+                        //         onError(result)
+                        //     }
+                        // });
+                        geolocation.getCurrentPosition();
+                        AMap.event.addListener(geolocation, "error", onError);
+                        AMap.event.addListener(
+                            geolocation,
+                            "complete",
+                            onComplete
+                        );
+                    });
+                    //解析定位结果
+                    function onComplete(data) {
+                        that.errMessage = "";
+                        that.poStatus = "校准中..";
+
+                        var gpsPoint = GPS.gcj_encrypt(
+                            data.position.getLat(),
+                            data.position.getLng()
+                        );
+                        that.map.setCenter([gpsPoint.lon, gpsPoint.lat]);
+                        that.map.setZoom(16);
+                        setTimeout(() => {
+                            that.poStatus = "定位成功";
+                            that.map.setCenter([gpsPoint.lon, gpsPoint.lat]);
+                        }, 1300);
+
+                        that.latval = gpsPoint.lat;
+                        that.lngval = gpsPoint.lon;
+                        if (that.marker) {
+                            that.map.remove(that.marker);
+                        }
+                        // 创建移动杆
+                        // that.creatMoveMarker(gpsPoint.lon, gpsPoint.lat)
+
+                        //点标记
+                        that.marker = new AMap.Marker({
+                            position: new AMap.LngLat(
+                                gpsPoint.lon,
+                                gpsPoint.lat
+                            ), // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                            title: "矫正过后",
+                        });
+
+                        // 将创建的点标记添加到已有的地图实例：
+                        that.map.add(that.marker);
+                    }
+                    //解析定位错误信息
+                    function onError(data) {
+                        that.poStatus = "定位失败";
+                        that.errMessage = "失败原因排查信息:" + data.message;
+                    }
+
+                    var GPS = {
+                        PI: 3.14159265358979324,
+                        x_pi: 3.14159265358979324 * 3000.0 / 180.0,
+                        delta: function (lat, lon) {
+                            var a = 6378245.0; //  a: 卫星椭球坐标投影到平面地图坐标系的投影因子。
+                            var ee = 0.00669342162296594323; //  ee: 椭球的偏心率。
+                            var dLat = this.transformLat(lon - 105.0, lat - 35.0);
+                            var dLon = this.transformLon(lon - 105.0, lat - 35.0);
+                            var radLat = lat / 180.0 * this.PI;
+                            var magic = Math.sin(radLat);
+                            magic = 1 - ee * magic * magic;
+                            var sqrtMagic = Math.sqrt(magic);
+                            dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * this.PI);
+                            dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * this.PI);
+                            return {
+                                'lat': dLat,
+                                'lon': dLon
+                            };
+                        },
+                        //WGS-84 to GCJ-02
+                        gcj_encrypt: function (wgsLat, wgsLon) {
+                            if (this.outOfChina(wgsLat, wgsLon))
+                                return {
+                                    'lat': wgsLat,
+                                    'lon': wgsLon
+                                };
+
+                            var d = this.delta(wgsLat, wgsLon);
+                            return {
+                                'lat': wgsLat + d.lat,
+                                'lon': wgsLon + d.lon
+                            };
+                        },
+                        outOfChina: function (lat, lon) {
+                            if (lon < 72.004 || lon > 137.8347)
+                                return true;
+                            if (lat < 0.8293 || lat > 55.8271)
+                                return true;
+                            return false;
+                        },
+                        transformLat: function (x, y) {
+                            var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+                            ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+                            ret += (20.0 * Math.sin(y * this.PI) + 40.0 * Math.sin(y / 3.0 * this.PI)) * 2.0 / 3.0;
+                            ret += (160.0 * Math.sin(y / 12.0 * this.PI) + 320 * Math.sin(y * this.PI / 30.0)) * 2.0 / 3.0;
+                            return ret;
+                        },
+                        transformLon: function (x, y) {
+                            var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+                            ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+                            ret += (20.0 * Math.sin(x * this.PI) + 40.0 * Math.sin(x / 3.0 * this.PI)) * 2.0 / 3.0;
+                            ret += (150.0 * Math.sin(x / 12.0 * this.PI) + 300.0 * Math.sin(x / 30.0 * this.PI)) * 2.0 / 3.0;
+                            return ret;
+                        }
+                    };
+                },
+            },
+            mounted() {
+                this.initmap();
+            },
+        });
+    </script>
+</html>
