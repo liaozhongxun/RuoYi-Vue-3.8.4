@@ -83,6 +83,7 @@
     <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="记录id" align="center" prop="dataId" />
+      <el-table-column label="卡名称" align="center" prop="name" />
       <el-table-column label="唯一卡号" align="center" prop="code" />
       <el-table-column label="卡类型" align="center" prop="ctype" />
       <el-table-column label="用户数据" align="center" prop="cdata" />
