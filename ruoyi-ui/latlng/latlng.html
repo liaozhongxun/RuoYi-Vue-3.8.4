@@ -40,12 +40,22 @@
             .info .status {
                 padding-bottom: 10px;
                 border-bottom: 1px dashed #e2e2e2;
+                position: relative;
+            }
+            .info .status .reload{
+                position: absolute;
+                right: 0;
+                top: -5;
+                width: 26px;
+                height: 26px;
+                background:url("./static/reset.png");
+                background-size: contain;
             }
             .input {
                 width: 100%;
                 height: 35px;
                 font-size: 18px;
-                margin-top: 10px;
+                /* margin-top: 10px; */
                 padding-left: 10px;
                 box-sizing: border-box;
             }
@@ -56,6 +66,26 @@
                 display: block;
                 margin-top: 10px;
             }
+
+            .codewarp{
+                position: relative;
+                display: flex;
+                margin: 10px 0;
+            }
+            .codewarp input{
+                flex: 1;
+            }
+            .codewarp .scanbtn{
+                /* position:absolute;
+                right: 0;
+                bottom: 0; */
+                height: 35px;
+                width: 35px;
+                background:url("./static/scan.png");
+                background-size: contain;
+                margin-left: 10px;
+            }
+
         </style>
     </head>
 
@@ -63,27 +93,43 @@
         <div id="app">
             <div id="container"></div>
             <div class="info">
-                <h4 class="status">{{poStatus}}</h4>
-                <div class="result" v-if="!errMessage">
-                    经纬度：
-                    <div>{{lngval}},{{latval}}</div>
-                </div>
-                <div class="result" v-else>{{errMessage}}</div>
+                <div v-show='!showScan'>
+                    <h4 class="status">{{poStatus}} <span class="reload" @click="reloadpage" v-if='errMessage'></span></h4>
+                    <div class="result" v-if="!errMessage">
+                        经纬度：
+                        <div>{{lngval}},{{latval}}</div>
+                    </div>
+                    <div class="result" v-else>{{errMessage}}</div>
 
-                <div class="submitinfo" v-if="!errMessage">
-                    <input
-                        class="input"
-                        type="text"
-                        placeholder="请输入卡号"
-                        v-model="code"
-                    />
-                    <input
-                        class="input"
-                        type="text"
-                        placeholder="请输入名称"
-                        v-model="name"
-                    />
-                    <button class="button" @click="submitCode">添 加</button>
+                    <div class="submitinfo" v-if="!errMessage">
+                        <div class="codewarp">
+                            <input
+                                class="input"
+                                type="text"
+                                placeholder="请输入卡号"
+                                v-model="code"
+                            />
+                            <div @click='getCode' class="scanbtn"></div>
+                        </div>
+                        <input
+                            class="input"
+                            type="text"
+                            placeholder="请输入名称"
+                            v-model="name"
+                        />
+                        <button class="button" @click="submitCode">添 加</button>
+                    </div>
+                </div>
+                <div class="scanbox" v-show='showScan'>
+                    <div>
+                        <video
+                            id="video"
+                            style='width:100%'
+                            height="480"
+                            style="border: 1px solid gray"
+                        ></video>
+                    </div>
+                    <button class="button" @click="closeScan">取 消</button>
                 </div>
             </div>
         </div>
@@ -91,6 +137,10 @@
     <script
         type="text/javascript"
         src="https://webapi.amap.com/maps?v=1.4.15&key=265d1f10919c205f3d5ad493dfc643a9"
+    ></script>
+    <script
+        type="text/javascript"
+        src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"
     ></script>
     <script type="text/javascript">
         var app = new Vue({
@@ -106,8 +156,18 @@
                 marker: null,
                 moveMarker:null,
                 map:null,
+
+                showScan:false,
+
+                startscan:null,
+                resetscan:null,
+                codeReader:null,
+                count:0,
             },
             methods: {
+                reloadpage(){
+                    location.reload()
+                },
                 submitCode() {
                     let that = this;
                     if (!this.code || !this.name) {
@@ -154,7 +214,7 @@
                   //点标记
                   this.moveMarker = new AMap.Marker({
                       position: new AMap.LngLat(lng,lat),
-                      icon: "./image/move.png",
+                      icon: "./static/move.png",
                       offset: new AMap.Pixel(-31, -58),
                       title: "移动杆",
                   });
@@ -293,6 +353,64 @@
                             return ret;
                         }
                     };
+                },
+                closeScan(){
+                    this.showScan = false;
+                },
+                getCode(){
+                    let selectedDeviceId;
+                    let that = this;
+                    this.code = '';
+                    this.showScan = true;
+
+                    if(this.codeReader){
+                        this.codeReader = null;
+                    }
+
+                    that.codeReader = new ZXing.BrowserMultiFormatReader();
+                    that.codeReader
+                        .listVideoInputDevices()
+                        .then((videoInputDevices) => {
+                            if(videoInputDevices.length > 1){
+                                selectedDeviceId = videoInputDevices[1].deviceId;
+                            }else{
+                                selectedDeviceId = videoInputDevices[0].deviceId;
+                            }
+
+                            (function(){
+                                that.codeReader.decodeFromVideoDevice(
+                                    selectedDeviceId,
+                                    "video",
+                                    (result, err) => {
+                                        if (result) {
+                                            that.code = result.text;
+                                            // that.codeReader = null;
+                                            that.showScan = false;
+                                            console.log('11')
+                                        }
+                                        if (
+                                            err &&
+                                            !(
+                                                err instanceof
+                                                ZXing.NotFoundException
+                                            )
+                                        ) {
+                                            alert("扫描异常")
+                                        }
+                                    }
+                                );
+                            })();
+
+                            that.resetscan = function(){
+                                that.codeReader.reset();
+                                document.getElementById("result").textContent =
+                                    "";
+                                console.log("Reset.");
+                            };
+                        })
+                        .catch((err) => {
+                            console.error(err);
+                        });
                 },
             },
             mounted() {
