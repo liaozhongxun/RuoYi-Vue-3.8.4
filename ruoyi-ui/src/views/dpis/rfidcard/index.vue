@@ -17,22 +17,6 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="经度" prop="lng">
-        <el-input
-          v-model="queryParams.lng"
-          placeholder="请输入经度"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="纬度" prop="lat">
-        <el-input
-          v-model="queryParams.lat"
-          placeholder="请输入纬度"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="类型" prop="type">
         <el-select v-model="queryParams.type" placeholder="请选择类型" clearable>
           <el-option
@@ -42,14 +26,6 @@
             :value="dict.value"
           />
         </el-select>
-      </el-form-item>
-      <el-form-item label="排序" prop="seq">
-        <el-input
-          v-model="queryParams.seq"
-          placeholder="请输入排序"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -221,13 +197,12 @@ export default {
         pageSize: 10,
         name: null,
         code: null,
-        lng: null,
-        lat: null,
         type: null,
-        seq: null,
       },
       // 表单参数
-      form: {},
+      form: {
+
+      },
       // 表单校验
       rules: {
         name: [
@@ -235,6 +210,9 @@ export default {
         ],
         code: [
           { required: true, message: "卡号不能为空", trigger: "blur" }
+        ],
+        type: [
+          { required: true, message: "类型不能为空", trigger: "blur" }
         ],
         seq: [
           { required: true, message: "排序不能为空", trigger: "blur" }
@@ -297,6 +275,7 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
+      this.$set(this.form,'type','有源')
       this.open = true;
       this.title = "添加RFID卡";
     },

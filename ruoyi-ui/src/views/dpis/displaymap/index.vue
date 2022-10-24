@@ -1,10 +1,18 @@
 <template>
   <div class="mapwarp">
-    <div class="layerbox">
+    <div class="layerbox" @mouseleave="outstate">
       <div class="layerbox_item">
-        <div class="item"><span class="iconfont el-icon-location"></span>已巡检 <span>{{countList.online}}</span></div>
-        <div class="item"><span class="iconfont el-icon-location-outline"></span>未巡检 <span>{{countList.offline}}</span></div>
+        <div class="item btn" :class="{active:selectIndex == 'online'}" @click="getListByState('online')"><span class="iconfont el-icon-location"></span>已巡检 <span>{{countList.online}}</span></div>
+        <div class="item btn" :class="{active:selectIndex == 'offline'}" @click="getListByState('offline')"><span class="iconfont el-icon-location-outline"></span>未巡检 <span>{{countList.offline}}</span></div>
         <div class="item"><span class="iconfont el-icon-place"></span>总数 <span>{{countList.total}}</span></div>
+      </div>
+      <div class="layerbox_cardList" v-show="stateCardList.length > 0">
+          <div class="list">
+            <div class='item' v-for="item in stateCardList" :key="item.id" @click="goCard(item)">
+                <div class="name">{{item.name}}</div>
+                <div class="code">{{item.code}}</div>
+            </div>
+          </div>
       </div>
     </div>
     <div class="change_day">
@@ -24,7 +32,7 @@ import redIco from "../../../assets/images/MAP/red.png";
 import greenIco from "../../../assets/images/MAP/green.png";
 import blueIco from "../../../assets/images/MAP/blue.png";
 import blackIco from "../../../assets/images/MAP/black.png";
-import { listRfidcard,listData,queryCount} from "@/api/dpis/displaymap";
+import { listRfidcard,listData,queryCount,showOnOfline} from "@/api/dpis/displaymap";
 export default {
   data() {
     return {
@@ -37,16 +45,19 @@ export default {
       InfoWindow: null,
       mapDatas:[],
       deviceList: [],
+      centLat:0,
+      centLng:0,
       countList:{
         online:0,
         offline:0,
         total:0
-      }
+      },
+      stateCardList:[],
+      selectIndex:null
     };
   },
   watch:{
     day(newV,oldV){
-      console.log(newV,oldV);
       this.getList();
       this.getMachineCount();
       if(new Date().toLocaleDateString().replace(/\//g,'-') == newV){
@@ -65,12 +76,57 @@ export default {
     }
   },
   methods: {
+    outstate(){
+        this.selectIndex = null;
+        this.stateCardList = [];
+    },
+    goCard(item){
+        let lnglat = new AMap.LngLat(item.lng, item.lat);
+        this.map.setCenter(lnglat);
+        // this.map.panTo(lnglat)
+        this.map.setZoom(16);
+        this.deviceList.forEach((data)=>{
+            if (data.code == item.code) {
+                item.lnglat = [data.lng,data.lat];
+                item.conn = data.connstate;
+            }
+        })
+
+        // setTimeout(()=>{
+            // this.creatDialog(item)
+        // },2000)
+
+        lnglat = null;
+    },
+    getListByState(state){
+        this.selectIndex = state;
+        showOnOfline({gatherTime:this.day,type: state}).then(response => {
+            this.stateCardList = response.data;
+        })
+    },
     /** 查询RFID卡列表 */
     getList() {
       listRfidcard({pageNum: 1,pageSize: 10000}).then(response => {
         this.deviceList = response.rows;
+        this.centLng = 0;
+        this.centLat = 0;
+        this.deviceList.forEach((item,index)=>{
+            this.centLng += item.lng;
+            this.centLat += item.lat;
+        })
+
+        this.centLng = this.centLng/response.total;
+        this.centLat = this.centLat/response.total;
+
+
+        // setTimeout(() => {
+        //     let lnglat = new AMap.LngLat(26.33, 119.22);
+        //     this.map.setCenter(lnglat);
+        // }, 2000);
+
+
         this.getUpList();
-        this.init();
+        // this.init();
       });
     },
     /** 查询采集数据列表 */
@@ -93,11 +149,10 @@ export default {
     /** 采集统计 */
     getMachineCount(){
       queryCount({gatherTime: this.day}).then(response => {
-        this.countList = response;
+        this.countList = response.data;
       });
     },
     showCard(){
-      console.log(this.deviceList)
       this.mapDatas = [];
       this.deviceList.forEach((item)=>{
         if(!item.lng||!item.lat) return;
@@ -107,7 +162,8 @@ export default {
         );
       })
 
-      this.setMarkers();
+      //   this.setMarkers();
+      this.init();
     },
     listItem(item) {
         //地图海量点标记数据配置
@@ -137,7 +193,7 @@ export default {
       this.map = new AMap.Map("container", {
         // viewMode: "3D", //是否为3D地图模式
         zoom: 10, //初始化地图级别
-        // center: ["113.589274","34.736848"], //初始化地图中心点位置
+        center: [ this.centLng, this.centLat], //初始化地图中心点位置
         resizeEnable: true,
       });
       AMap.plugin(["AMap.ToolBar"], () => {
@@ -166,7 +222,9 @@ export default {
         });
       }
 
-      // console.log(this.mapDatas)
+    //   if (this.massMarks) {
+    //     this.massMarks.remove();
+    //   }
       this.massMarks = new AMap.MassMarks(this.mapDatas, {
         opacity: 1,
         zIndex: 999,
@@ -179,16 +237,13 @@ export default {
       this.massMarks.setMap(this.map);
     },
     creatDialog(e){
-      console.log(e)
       if (e.data) {
           e = e.data;
       } else {
-          console.log('没有data')
           e = e;
       }
       /*信息窗体*/
       let lnglat = new AMap.LngLat(e.lnglat[0], e.lnglat[1]);
-      console.log(lnglat)
 
 
       let info = [];
@@ -212,9 +267,9 @@ export default {
   mounted() {
     this.getList();
     this.getMachineCount();
-    this.updateTime = setInterval(()=>{
-      this.getUpList();
-    },7000)
+    // this.updateTime = setInterval(()=>{
+    //   this.getUpList();
+    // },7000)
   },
 };
 </script>
@@ -233,19 +288,20 @@ export default {
     position: absolute;
     top:10px;
     left:10px;
-    height: 45px;
-    background: #fff;
     z-index: 999;
-    padding: 0 10px;
-
-    border-radius: 3px;
     user-select: none;
-    box-shadow: 0 2px 2px rgba(0,0,0,.15);
     .layerbox_item{
-      padding: 14px 0 13px;
       background: #fff;
+      box-shadow: 0 2px 2px rgba(0,0,0,.15);
       border-radius: 3px;
-      height: 18px;
+      padding: 14px 10px 13px;
+      background: rgba(255,255,255,.9);
+      border-radius: 3px;
+      height: 45px;
+
+      .btn{
+          cursor: pointer;
+      }
       .item{
         float: left;
         height: 18px;
@@ -260,7 +316,10 @@ export default {
         &:not(:first-child){
           border-left: 1px #dbdee2 dashed;
         }
-        &:hover{
+        &.btn:hover{
+          color:rgb(176,179,192)
+        }
+        &.btn.active{
           color:rgb(176,179,192)
         }
         span{
@@ -276,6 +335,45 @@ export default {
           // }
         }
       }
+    }
+    .layerbox_cardList{
+		margin-top:7px ;
+        box-shadow: 0 2px 2px rgba(0,0,0,.15);
+        border-radius: 3px;
+        background: rgba(255,255,255,.8);
+        padding: 10px;
+        padding-right: 0;
+        .list{
+            max-height:400px;
+            padding-right: 10px;
+            overflow: auto;
+            .item{
+                padding:4px 12px;
+                cursor: pointer;
+                color: #5f6477;
+                &:not(:last-child){
+                    border-bottom: 1px dashed rgb(233, 227, 227);
+                }
+                padding-bottom: 10px;
+                &:hover{
+                    .code{
+                        color: rgb(176,179,192);
+                    }
+                    .name{
+                        color: rgb(176,179,192);
+                    }
+                }
+                .code{
+                    font-size: 14px;
+                    color: #888;
+                }
+                .name{
+                    font-size: 16px;
+
+                }
+            }
+        }
+        // min-height: 10px;
     }
   }
 }

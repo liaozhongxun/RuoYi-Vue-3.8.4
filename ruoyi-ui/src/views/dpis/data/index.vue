@@ -9,10 +9,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="用户数据" prop="cdata">
+      <el-form-item label="名称" prop="name">
         <el-input
-          v-model="queryParams.cdata"
-          placeholder="请输入用户数据"
+          v-model="queryParams.name"
+          placeholder="请输入名称"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -83,10 +83,9 @@
     <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="记录id" align="center" prop="dataId" />
-      <el-table-column label="卡名称" align="center" prop="name" />
+      <el-table-column label="名称" align="center" prop="name" />
       <el-table-column label="唯一卡号" align="center" prop="code" />
       <el-table-column label="卡类型" align="center" prop="ctype" />
-      <el-table-column label="用户数据" align="center" prop="cdata" />
       <el-table-column label="经度" align="center" prop="lng" />
       <el-table-column label="纬度" align="center" prop="lat" />
       <el-table-column label="采集时间" align="center" prop="gatherTime" width="180">
@@ -132,9 +131,6 @@
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="唯一卡号" prop="code">
           <el-input v-model="form.code" placeholder="请输入唯一卡号" />
-        </el-form-item>
-        <el-form-item label="用户数据" prop="cdata">
-          <el-input v-model="form.cdata" placeholder="请输入用户数据" />
         </el-form-item>
         <el-form-item label="经度" prop="lng">
           <el-input v-model="form.lng" placeholder="请输入经度" />

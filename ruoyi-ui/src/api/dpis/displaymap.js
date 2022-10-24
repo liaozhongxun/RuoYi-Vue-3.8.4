@@ -35,3 +35,11 @@ export function queryCount(query) {
   })
 }
 
+// 根据在不在线查询卡
+export function showOnOfline(query) {
+    return request({
+      url: '/dpis/rfidcard/showOnOfline',
+      method: 'get',
+      params: query
+    })
+  }
