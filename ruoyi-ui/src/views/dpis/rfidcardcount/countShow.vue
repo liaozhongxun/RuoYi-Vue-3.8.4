@@ -8,7 +8,7 @@
             v-show="showSearch"
             label-width="68px"
         >
-            <el-form-item label="采集时间">
+            <el-form-item label="巡检时间">
                 <el-date-picker
                     v-model="daterangeGatherTime"
                     style="width: 240px"
@@ -52,21 +52,6 @@
             <el-table-column label="总数" align="center" prop="total" />
             <el-table-column label="已巡检" align="center" prop="online" />
             <el-table-column label="未巡检" align="center" prop="offline" />
-            <el-table-column
-                label="创建时间"
-                align="center"
-                prop="createTime"
-                width="180"
-            >
-                <template slot-scope="scope">
-                    <span>{{
-                        parseTime(
-                            scope.row.createTime,
-                            "{y}-{m}-{d} {h}:{m}:{s}"
-                        )
-                    }}</span>
-                </template>
-            </el-table-column>
         </el-table>
 
         <pagination
@@ -80,7 +65,6 @@
 </template>
 
 <script>
-//   import { listData, getData, delData, addData, updateData } from "@/api/dpis/data";
 import { listData } from "@/api/dpis/rfidcardcount";
 
 export default {
