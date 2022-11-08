@@ -90,12 +90,13 @@
       <el-table-column label="纬度" align="center" prop="lat" />
       <el-table-column label="采集时间" align="center" prop="gatherTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.gatherTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
+          <span>{{ scope.row.gatherTime }}</span>
+          <!-- <span>{{ parseTime(scope.row.gatherTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span> -->
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
+            <span>{{ scope.row.gatherTime }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">

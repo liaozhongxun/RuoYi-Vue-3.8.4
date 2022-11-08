@@ -84,7 +84,7 @@ export default {
         let lnglat = new AMap.LngLat(item.lng, item.lat);
         this.map.setCenter(lnglat);
         // this.map.panTo(lnglat)
-        this.map.setZoom(16);
+        this.map.setZoom(18);
         this.deviceList.forEach((data)=>{
             if (data.code == item.code) {
                 item.lnglat = [data.lng,data.lat];
@@ -92,9 +92,13 @@ export default {
             }
         })
 
-        // setTimeout(()=>{
-            // this.creatDialog(item)
-        // },2000)
+        let showpop = true;
+        this.map.on("moveend",()=>{
+            if(showpop){
+                this.creatDialog(item);
+                showpop=false;
+            }
+        })
 
         lnglat = null;
     },
@@ -131,7 +135,7 @@ export default {
     },
     /** 查询采集数据列表 */
     getUpList() {
-      listData({pageNum: 1,pageSize: 10000,gatherTime:this.day,type:"1"}).then(response => {
+      listData({pageNum: 1,pageSize: 10000,gatherTime:this.day,params:{type:"1"}}).then(response => {
         this.updateCardList = response.rows;
         this.deviceList.forEach((item)=>{
           item.gatherChangeTime=[];
@@ -192,8 +196,11 @@ export default {
     init() {
       this.map = new AMap.Map("container", {
         // viewMode: "3D", //是否为3D地图模式
-        zoom: 10, //初始化地图级别
+        zoom: 14, //初始化地图级别
+        // jogEnable:false,// 缓动效果
+        // animateEnable:false,
         center: [ this.centLng, this.centLat], //初始化地图中心点位置
+        // center: "", //初始化地图中心点位置
         resizeEnable: true,
       });
       AMap.plugin(["AMap.ToolBar"], () => {
@@ -206,6 +213,7 @@ export default {
           })
         );
       });
+
       this.setMarkers();
     },
     setMarkers() {
@@ -237,6 +245,7 @@ export default {
       this.massMarks.setMap(this.map);
     },
     creatDialog(e){
+        console.log(e);
       if (e.data) {
           e = e.data;
       } else {
@@ -253,7 +262,9 @@ export default {
       info.push(`<div class='input-item' style='margin:0;'>卡名：${e.name}</div>`);
       info.push(`<div class='input-item' style='margin:0;'>卡号：${e.code}</div>`);
       info.push(`<div class='input-item' style='margin:0;'>巡检状态：${e.conn=='0'?'未巡检':'<span style="color:green">已巡检</span>'}</div>`);
-      info.push(`<div class='input-item' style='margin:0;'>巡检时间：${e.conn=='0'? '无':e.gatherTime}</div></div></div>`)
+      if(e.gatherTime){
+          info.push(`<div class='input-item' style='margin:0;'>巡检时间：${e.conn=='0'? '无':e.gatherTime}</div></div></div>`)
+      }
 
       this.InfoWindow = new AMap.InfoWindow({
           offset: new AMap.Pixel(17, -7),
