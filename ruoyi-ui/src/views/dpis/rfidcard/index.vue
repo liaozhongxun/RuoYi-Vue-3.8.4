@@ -81,8 +81,8 @@
 
     <el-table v-loading="loading" :data="rfidcardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="RFID卡id" align="center" prop="cardId" />
-      <el-table-column label="名称" align="center" prop="name" />
+      <!-- <el-table-column label="RFID卡id" align="center" prop="cardId" /> -->
+      <el-table-column label="名称" align="center" prop="name" width="170"/>
       <el-table-column label="卡号" align="center" prop="code" />
       <el-table-column label="经度" align="center" prop="lng" />
       <el-table-column label="纬度" align="center" prop="lat" />
@@ -92,11 +92,11 @@
         </template>
       </el-table-column>
       <el-table-column label="排序" align="center" prop="seq" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <!-- <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -127,7 +127,7 @@
     />
 
     <!-- 添加或修改RFID卡对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body :close-on-click-modal="false">
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入名称" />
